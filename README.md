@@ -6,6 +6,7 @@ https://github.com/smartystreets/go-aws-auth
 
 https://github.com/bmizerany/aws4
 
+Because of these reasons, I try to write a AWS library for Go language.
 
 **INSTALLATION**
 
