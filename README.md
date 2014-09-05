@@ -45,7 +45,7 @@ import "github.com/letscool/aws/s3"
 
 **SAMPLES**
 
-You can refer to all unit test files (filename with _test string).
+You can refer to all unit test files (filename ends with '_test').
 
 
 **API**
