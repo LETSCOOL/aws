@@ -15,7 +15,7 @@ You should set global parameter 'GOPATH' first, than download this package
 
 `go get github.com/letscool/aws`
 
-You can install each package separately, go tool will also generate package file(s) (.a or .dll) for you. Note: Common package always need to be installed first.
+You can install each package separately, go tool will also generate package file(s) (.a or .dll) for you. Note: Package `common` always need to be installed first.
 
 `go get github.com/letscool/aws/common`
 
@@ -23,7 +23,7 @@ You can install each package separately, go tool will also generate package file
 
 `go get github.com/letscool/aws/ec2`
 
-`go get github.com/letscool/aws/st`
+`go get github.com/letscool/aws/s3`
 
 `go get github.com/letscool/aws/sts`
 
