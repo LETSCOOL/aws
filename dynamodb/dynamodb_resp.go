@@ -6,6 +6,7 @@ import (
 	"github.com/letscool/aws/common"
 	"encoding/json"
 	"strings"
+	"time"
 )
 
 
@@ -56,8 +57,7 @@ func (this *DynamoDBResp) Init(req *DynamoDBReq, resp *http.Response) (*DynamoDB
 	return this, nil
 }
 
-
-
+// ================================= ListTablesResp
 type ListTablesResp struct {
 	DynamoDBResp			`json:"-"`
 	TableNames				[]string
@@ -86,17 +86,65 @@ func (this *ListTablesResp) Init(req *ListTablesReq, resp *http.Response) (*List
 	return this, nil
 }
 
+// ================================= DescribeTableResp
+// ref: http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TableDescription.html
 type TableDescription struct {
-	TableName		string
-	TableSizeBytes	int64
-	TableStatus		string			// "CREATING", "UPDATING", "DELETING", "ACTIVE"
-	ItemCount		int64
-	CreationDateTime	float64
-	//AttributeDefinitions
-	//KeySchema
-	//LocalSecondaryIndexes
-	//ProvisionedThroughput
-	//GlobalSecondaryIndexes
+	TableName				string			// 3 <= Len(TableName) <= 255
+	TableSizeBytes			int64
+	TableStatus				string			// "CREATING", "UPDATING", "DELETING", "ACTIVE"
+	ItemCount				int64
+	CreationDateTime		float64
+	AttributeDefinitions	[]AttributeDefinition
+	KeySchema				[]KeySchemaElement
+	LocalSecondaryIndexes	[]LocalSecondaryIndexDescription
+	ProvisionedThroughput	ProvisionedThroughputDescription
+	GlobalSecondaryIndexes	[]GlobalSecondaryIndexDescription
+}
+
+func (this *TableDescription) CreationTime() time.Time {
+	return UnixDateTimeToTime(this.CreationDateTime)
+}
+
+/// Unix date time to systme time
+func UnixDateTimeToTime(dateTime float64) time.Time {
+	return time.Unix(int64(dateTime), int64((dateTime-float64(int64(dateTime)))*float64(time.Second)))
+}
+
+// ref: http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_GlobalSecondaryIndexDescription.html
+type GlobalSecondaryIndexDescription struct {
+	IndexName				string						// 3 <= Len(IndexName) <= 255
+	IndexSizeBytes			int64
+	IndexStatus				string						// "CREATING", "UPDATING", "DELETING", "ACTIVE"
+	ItemCount				int64
+	KeySchema				[]KeySchemaElement
+	Projection				Projection
+	ProvisionedThroughput	ProvisionedThroughputDescription
+}
+
+// ref: http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_ProvisionedThroughputDescription.html
+type ProvisionedThroughputDescription struct {
+	LastDecreaseDateTime		float64
+	LastIncreaseDateTime		float64
+	NumberOfDecreasesToday		int64
+	ReadCapacityUnits			int64
+	WriteCapacityUnits			int64
+}
+
+func (this *ProvisionedThroughputDescription) LastDecreaseTime() time.Time {
+	return UnixDateTimeToTime(this.LastDecreaseDateTime)
+}
+
+func (this *ProvisionedThroughputDescription) LastIncreaseTime() time.Time {
+	return UnixDateTimeToTime(this.LastIncreaseDateTime)
+}
+
+// http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_LocalSecondaryIndexDescription.html
+type LocalSecondaryIndexDescription struct {
+	IndexName				string			// 3 <= Len(IndexName) <= 255
+	IndexSizeBytes			int64
+	ItemCount				int64
+	KeySchema				[]KeySchemaElement
+	Projection				Projection
 }
 
 type DescribeTableResp struct {
@@ -125,4 +173,77 @@ func (this *DescribeTableResp) Init(req *DescribeTableReq, resp *http.Response) 
 	}
 
 	return this, nil
+}
+
+// ==================================== CreateTableResp
+type CreateTableResp struct {
+	DynamoDBResp			`json:"-"`
+	TableDescription		TableDescription
+}
+
+func (this *CreateTableResp) Init(req *CreateTableReq, resp *http.Response) (*CreateTableResp, error) {
+	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
+		return nil, err
+	}
+
+	if this.Error!=nil {
+		return this, nil
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(body, this); err!=nil {
+		return nil, err
+	}
+
+	return this, nil
+}
+
+// ==================================== DeleteTableResp
+type DeleteTableResp struct {
+	DynamoDBResp			`json:"-"`
+	TableDescription		TableDescription
+}
+
+func (this *DeleteTableResp) Init(req *DeleteTableReq, resp *http.Response) (*DeleteTableResp, error) {
+	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
+		return nil, err
+	}
+
+	if this.Error!=nil {
+		return this, nil
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(body, this); err!=nil {
+		return nil, err
+	}
+
+	return this, nil
+}
+
+// ==================================== PutItemResp
+type PutItemResp struct {
+	DynamoDBResp			`json:"-"`
+}
+
+// ==================================== DeleteItemResp
+type DeleteItemResp struct {
+	DynamoDBResp			`json:"-"`
+}
+
+// ==================================== GetItemResp
+type GetItemResp struct {
+	DynamoDBResp			`json:"-"`
+
+	Item		map[string]AttributeValue
 }

@@ -69,7 +69,7 @@ API
 
 Only support some simple API(s):
 
-* DynamoDB: ListTables, DescribeTable
+* DynamoDB: ListTables, CreateTable, DescribeTable, DeleteTable
 
 * EC2: DescribeInstances
 

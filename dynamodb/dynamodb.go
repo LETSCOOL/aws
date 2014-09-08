@@ -66,3 +66,38 @@ func (this *DynamoDB) DescribeTable(req *DescribeTableReq) (*DescribeTableResp, 
 
 	return new(DescribeTableResp).Init(req, httpResp)
 }
+
+func (this *DynamoDB) CreateTable(req *CreateTableReq) (*CreateTableResp, error) {
+	req.generatePayload()
+
+	httpReq, err := this.Sign4(&req.AWSRequest, true)
+	if err != nil {
+		return nil, err
+	}
+
+	httpResp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+
+	return new(CreateTableResp).Init(req, httpResp)
+}
+
+func (this *DynamoDB) DeleteTable(req *DeleteTableReq) (*DeleteTableResp, error) {
+	req.generatePayload()
+
+	httpReq, err := this.Sign4(&req.AWSRequest, true)
+	if err != nil {
+		return nil, err
+	}
+
+	httpResp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+
+	return new(DeleteTableResp).Init(req, httpResp)
+}
+
+
+

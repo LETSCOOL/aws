@@ -15,7 +15,7 @@ func TestEC2Connect(t *testing.T) {
 	}
 
 	ec2, err := NewEC2(cred)
-	if err!=nil {
+	if err != nil {
 		t.Errorf("NewEC2 fail (%s)\n", err)
 		return
 	}
@@ -24,7 +24,7 @@ func TestEC2Connect(t *testing.T) {
 		t.Errorf("EC2 DescribeInstances fail (%s)\n", err)
 		return
 	} else {
-		if resp.Errors!=nil {
+		if resp.Errors != nil {
 			t.Errorf("EC2 DescribeInstances fail: %s\n", resp.Errors.Error[0].Message)
 
 		} else {
