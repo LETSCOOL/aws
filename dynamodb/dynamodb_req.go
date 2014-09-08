@@ -182,20 +182,6 @@ func (this *DeleteTableReq) generatePayload() {
 
 // ================================== PutItemReq
 
-type PutItemReq struct {
-	DynamoDBReq							`json:"-"`
-}
-
-
-// =================================== DeleteItemReq
-
-type DeleteItemReq struct {
-	DynamoDBReq							`json:"-"`
-}
-
-
-// ================================= GetItemReq
-
 type AttributeValue struct {
 	B		[]byte				`json:",omitempty"`
 	BS		[][]byte			`json:",omitempty"`
@@ -205,15 +191,101 @@ type AttributeValue struct {
 	SS		[]string			`json:",omitempty"`
 }
 
+// ref: http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_ExpectedAttributeValue.html
+type ExpectedAttributeValue struct {
+	AttributeValueList		[]AttributeValue		`json:",omitempty"`
+	ComparisonOperator		string					// EQ | NE | LE | LT | GE | GT | NOT_NULL | NULL | CONTAINS | NOT_CONTAINS | BEGINS_WITH | IN | BETWEEN
+	// We don't support following deprecated variables, it is more complex to work together.
+	//Exists				bool					`json:",omitempty"`	// deprecated, use AttributeValueList and ComparisonOperator instead
+	//Value					AttributeValue			`json:",omitempty"`	// deprecated, use AttributeValueList and ComparisonOperator instead
+}
+
+// ref: http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_PutItem.html#DDB-PutItem-request-Expected
+type PutItemReq struct {
+	DynamoDBReq							`json:"-"`
+
+	TableName				string
+	Attributes				map[string]AttributeValue			`json:"Item"`
+	ConditionalOperator		string								`json:",omitempty"`				// "AND", "OR"
+	Expected				map[string]ExpectedAttributeValue	`json:",omitempty"`
+	ReturnConsumedCapacity	string								`json:",omitempty"`				// INDEXES | TOTAL | NONE
+	ReturnItemCollectionMetrics string							`json:",omitempty"`				// "SIZE", "NONE"
+	ReturnValues			string								`json:",omitempty"`				// NONE | ALL_OLD | UPDATED_OLD | ALL_NEW | UPDATED_NEW
+}
+
+func (this *PutItemReq) Init() (*PutItemReq) {
+	if this.DynamoDBReq.Init() == nil {
+		return nil
+	}
+
+	this.Method = "POST"
+
+	this.Headers["X-Amz-Target"] = "DynamoDB_"+DynamoDB_API_VERSION+"."+"PutItem"
+	this.Headers["Content-Type"] = "application/x-amz-json-1.0"
+
+	return this
+}
+
+
+func (this *PutItemReq) generatePayload() {
+	this.Payload.Truncate(0)
+	marshal, _ := json.Marshal(this)
+	this.Payload.WriteString(string(marshal))
+
+	if common.DEBUG_VERBOSE!=0 {
+		fmt.Printf("Payload: %s\n", string(this.Payload.Bytes()))
+	}
+}
+
+// =================================== DeleteItemReq
+
+type DeleteItemReq struct {
+	DynamoDBReq							`json:"-"`
+
+	TableName				string
+	Key						map[string]AttributeValue
+	ConditionalOperator		string								`json:",omitempty"`				// "AND", "OR"
+	Expected				map[string]ExpectedAttributeValue	`json:",omitempty"`
+	ReturnConsumedCapacity	string								`json:",omitempty"`				// INDEXES | TOTAL | NONE
+	ReturnItemCollectionMetrics string							`json:",omitempty"`				// "SIZE", "NONE"
+	ReturnValues			string								`json:",omitempty"`				// NONE | ALL_OLD | UPDATED_OLD | ALL_NEW | UPDATED_NEW
+}
+
+func (this *DeleteItemReq) Init() (*DeleteItemReq) {
+	if this.DynamoDBReq.Init() == nil {
+		return nil
+	}
+
+	this.Method = "POST"
+
+	this.Headers["X-Amz-Target"] = "DynamoDB_"+DynamoDB_API_VERSION+"."+"DeleteItem"
+	this.Headers["Content-Type"] = "application/x-amz-json-1.0"
+
+	return this
+}
+
+
+func (this *DeleteItemReq) generatePayload() {
+	this.Payload.Truncate(0)
+	marshal, _ := json.Marshal(this)
+	this.Payload.WriteString(string(marshal))
+
+	if common.DEBUG_VERBOSE!=0 {
+		fmt.Printf("Payload: %s\n", string(this.Payload.Bytes()))
+	}
+}
+
+// ================================= GetItemReq
+
 // doc: http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_GetItem.html
 type GetItemReq struct {
 	DynamoDBReq							`json:"-"`
 
-	TableName			string			`json:"TableName"`
+	TableName			string							`json:"TableName"`
+	Key					map[string]AttributeValue		`json:"Key"`
 	AttributesToGet		[]string		`json:",omitempty"`
 	ConsistentRead		bool			`json:",omitempty"`
 	ReturnConsumedCapacity	string		`json:",omitempty"`				// INDEXES | TOTAL | NONE
-	Key					map[string]AttributeValue		`json:"Key"`
 }
 
 func (this *GetItemReq) Init() (*GetItemReq) {

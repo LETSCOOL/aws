@@ -46,6 +46,7 @@ The csv file was downloaded when you created an IAM user in Amazon AWS site.
 
 `go test github.com/letscool/aws/sts`
 
+Use `go test -v github.com/....` to see more information.
 
 USAGE
 -----
@@ -69,7 +70,7 @@ API
 
 Only support some simple API(s):
 
-* DynamoDB: ListTables, CreateTable, DescribeTable, DeleteTable
+* DynamoDB: ListTables, CreateTable, DescribeTable, DeleteTable, PutItem, GetItem, DeleteItem
 
 * EC2: DescribeInstances
 

@@ -99,5 +99,54 @@ func (this *DynamoDB) DeleteTable(req *DeleteTableReq) (*DeleteTableResp, error)
 	return new(DeleteTableResp).Init(req, httpResp)
 }
 
+func (this *DynamoDB) PutItem(req *PutItemReq) (*PutItemResp, error) {
+	req.generatePayload()
+
+	httpReq, err := this.Sign4(&req.AWSRequest, true)
+	if err != nil {
+		return nil, err
+	}
+
+	httpResp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+
+	return new(PutItemResp).Init(req, httpResp)
+}
+
+func (this *DynamoDB) GetItem(req *GetItemReq) (*GetItemResp, error) {
+	req.generatePayload()
+
+	httpReq, err := this.Sign4(&req.AWSRequest, true)
+	if err != nil {
+		return nil, err
+	}
+
+	httpResp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+
+	return new(GetItemResp).Init(req, httpResp)
+}
+
+func (this *DynamoDB) DeleteItem(req *DeleteItemReq) (*DeleteItemResp, error) {
+	req.generatePayload()
+
+	httpReq, err := this.Sign4(&req.AWSRequest, true)
+	if err != nil {
+		return nil, err
+	}
+
+	httpResp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+
+	return new(DeleteItemResp).Init(req, httpResp)
+}
+
+
 
 

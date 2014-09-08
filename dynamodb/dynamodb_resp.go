@@ -232,18 +232,112 @@ func (this *DeleteTableResp) Init(req *DeleteTableReq, resp *http.Response) (*De
 }
 
 // ==================================== PutItemResp
+
+// ref: http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_ConsumedCapacity.html
+type ConsumedCapacity struct {
+	CapacityUnits		float64
+	GlobalSecondaryIndexes	map[string]Capacity
+	LocalSecondaryIndexes	map[string]Capacity
+	Table				Capacity
+	TableName			string
+}
+
+type Capacity struct {
+	CapacityUnits		float64
+}
+
+type ItemCollectionMetrics struct {
+	ItemCollectionKey		map[string]AttributeValue
+	SizeEstimateRangeGB		[]float64
+}
+
 type PutItemResp struct {
 	DynamoDBResp			`json:"-"`
+
+	Attributes				map[string]AttributeValue
+	ConsumedCapacity		ConsumedCapacity
+	ItemCollectionMetrics	ItemCollectionMetrics
+}
+
+func (this *PutItemResp) Init(req *PutItemReq, resp *http.Response) (*PutItemResp, error) {
+	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
+		return nil, err
+	}
+
+	if this.Error!=nil {
+		return this, nil
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(body, this); err!=nil {
+		return nil, err
+	}
+
+	return this, nil
 }
 
 // ==================================== DeleteItemResp
 type DeleteItemResp struct {
 	DynamoDBResp			`json:"-"`
+
+	Attributes				map[string]AttributeValue
+	ConsumedCapacity		ConsumedCapacity
+	ItemCollectionMetrics	ItemCollectionMetrics
+}
+
+func (this *DeleteItemResp) Init(req *DeleteItemReq, resp *http.Response) (*DeleteItemResp, error) {
+	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
+		return nil, err
+	}
+
+	if this.Error!=nil {
+		return this, nil
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(body, this); err!=nil {
+		return nil, err
+	}
+
+	return this, nil
 }
 
 // ==================================== GetItemResp
 type GetItemResp struct {
 	DynamoDBResp			`json:"-"`
 
-	Item		map[string]AttributeValue
+	Attributes				map[string]AttributeValue			`json:"Item"`
+	ConsumedCapacity		ConsumedCapacity
+}
+
+func (this *GetItemResp) Init(req *GetItemReq, resp *http.Response) (*GetItemResp, error) {
+	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
+		return nil, err
+	}
+
+	if this.Error!=nil {
+		return this, nil
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(body, this); err!=nil {
+		return nil, err
+	}
+
+	return this, nil
 }

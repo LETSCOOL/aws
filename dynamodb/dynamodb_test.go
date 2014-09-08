@@ -73,7 +73,7 @@ func TestDynamoDBCreateTable(t *testing.T) {
 		if resp.Error!=nil {
 			t.Errorf("DynamoDB CreateTable fail (%s, %s)\n", resp.Error.Exception, resp.Error.Message)
 		} else {
-			t.Logf("Create table table: %s(%s, %s) \n%s\n", resp.TableDescription.TableName, resp.TableDescription.TableStatus, resp.TableDescription.CreationTime(), resp.TableDescription)
+			t.Logf("Create table table: %s(%s, %s)\nTableDescription:%+v\n", resp.TableDescription.TableName, resp.TableDescription.TableStatus, resp.TableDescription.CreationTime(), resp.TableDescription)
 		}
 	}
 }
@@ -97,7 +97,7 @@ func TestDynamoDBDescribeTable(t *testing.T) {
 		if resp.Error!=nil {
 			t.Errorf("DynamoDB DescribeTable fail (%s, %s)\n", resp.Error.Exception, resp.Error.Message)
 		} else {
-			t.Logf("Describe table: %s(%s, %s) \n%s\n", resp.TableDescription.TableName, resp.TableDescription.TableStatus, resp.TableDescription.CreationTime(), resp.TableDescription)
+			t.Logf("Describe table: %s(%s, %s)\nTableDescription:%+v\n", resp.TableDescription.TableName, resp.TableDescription.TableStatus, resp.TableDescription.CreationTime(), resp.TableDescription)
 			switch resp.TableDescription.TableStatus {
 			case "CREATING", "UPDATING":
 				t.Log("Waiting 'ACTIVE' state\n")
@@ -109,6 +109,98 @@ func TestDynamoDBDescribeTable(t *testing.T) {
 				// do nothing
 
 			}
+		}
+	}
+}
+
+
+func TestDynamoDBPutItem(t *testing.T) {
+	ddb, err := NewDynamoDB(credentials)
+	if err!=nil {
+		t.Errorf("NewDynamoDB fail (%s)\n", err)
+		return
+	}
+
+	//ddb.Endpoint = "dynamodb.us-west-2.amazonaws.com"
+	//ddb.Region = "us-west-2"
+
+	req := (&PutItemReq{
+		TableName:"Abcdefg__99999",
+		Attributes:map[string]AttributeValue{"HASH_KEY":AttributeValue{S:"hk1"}, "RANGE_KEY":AttributeValue{N:"111111"}, "ATTR_1":AttributeValue{B:[]byte("attr1_binary")}, "ATTR_2":AttributeValue{S:"attr1"},},
+			// following parameters are option
+		//ConditionalOperator:"AND",
+		Expected:map[string]ExpectedAttributeValue{"ATTR_2":ExpectedAttributeValue{ComparisonOperator:"NULL"}},
+		ReturnConsumedCapacity:"TOTAL",
+		ReturnItemCollectionMetrics:"SIZE",
+		ReturnValues:"NONE",
+	}).Init()
+	if resp, err := ddb.PutItem(req); err!=nil {
+		t.Errorf("DynamoDB PutItem fail (%s)\n", err)
+	} else {
+		if resp.Error!=nil {
+			t.Errorf("DynamoDB PutItem fail (%s, %s)\n", resp.Error.Exception, resp.Error.Message)
+		} else {
+			t.Logf("Put item: %+v\n", resp)
+		}
+	}
+}
+
+func TestDynamoDBGetItem(t *testing.T) {
+	ddb, err := NewDynamoDB(credentials)
+	if err!=nil {
+		t.Errorf("NewDynamoDB fail (%s)\n", err)
+		return
+	}
+
+	//ddb.Endpoint = "dynamodb.us-west-2.amazonaws.com"
+	//ddb.Region = "us-west-2"
+
+	req := (&GetItemReq{
+		TableName:"Abcdefg__99999",
+		Key:map[string]AttributeValue{"HASH_KEY":AttributeValue{S:"hk1"}, "RANGE_KEY":AttributeValue{N:"111111"},},
+			// following parameters are option
+		AttributesToGet:[]string{"ATTR_1","ATTR_2"},
+		ConsistentRead:true,
+		ReturnConsumedCapacity:"TOTAL",
+	}).Init()
+	if resp, err := ddb.GetItem(req); err!=nil {
+		t.Errorf("DynamoDB GetItem fail (%s)\n", err)
+	} else {
+		if resp.Error!=nil {
+			t.Errorf("DynamoDB GetItem fail (%s, %s)\n", resp.Error.Exception, resp.Error.Message)
+		} else {
+			t.Logf("Get item: %+v\n", resp)
+		}
+	}
+}
+
+func TestDynamoDBDeleteItem(t *testing.T) {
+	ddb, err := NewDynamoDB(credentials)
+	if err!=nil {
+		t.Errorf("NewDynamoDB fail (%s)\n", err)
+		return
+	}
+
+	//ddb.Endpoint = "dynamodb.us-west-2.amazonaws.com"
+	//ddb.Region = "us-west-2"
+
+	req := (&DeleteItemReq{
+		TableName:"Abcdefg__99999",
+		Key:map[string]AttributeValue{"HASH_KEY":AttributeValue{S:"hk1"}, "RANGE_KEY":AttributeValue{N:"111111"},},
+			// following parameters are option
+		//ConditionalOperator:"AND",
+		Expected:map[string]ExpectedAttributeValue{"ATTR_2":ExpectedAttributeValue{ComparisonOperator:"EQ",AttributeValueList:[]AttributeValue{AttributeValue{S:"attr1"}}}},
+		ReturnConsumedCapacity:"TOTAL",
+		ReturnItemCollectionMetrics:"SIZE",
+		ReturnValues:"NONE",
+	}).Init()
+	if resp, err := ddb.DeleteItem(req); err!=nil {
+		t.Errorf("DynamoDB DeleteItem fail (%s)\n", err)
+	} else {
+		if resp.Error!=nil {
+			t.Errorf("DynamoDB DeleteItem fail (%s, %s)\n", resp.Error.Exception, resp.Error.Message)
+		} else {
+			t.Logf("Delete item: %+v\n", resp)
 		}
 	}
 }
@@ -132,7 +224,7 @@ func TestDynamoDBDeleteTable(t *testing.T) {
 		if resp.Error!=nil {
 			t.Errorf("DynamoDB DeleteTable fail (%s, %s)\n", resp.Error.Exception, resp.Error.Message)
 		} else {
-			t.Logf("Delete table table: %s(%s, %s) \n%s\n", resp.TableDescription.TableName, resp.TableDescription.TableStatus, resp.TableDescription.CreationTime(), resp.TableDescription)
+			t.Logf("Delete table table: %s(%s, %s)\nTableDescription:%+v\n", resp.TableDescription.TableName, resp.TableDescription.TableStatus, resp.TableDescription.CreationTime(), resp.TableDescription)
 		}
 	}
 }
