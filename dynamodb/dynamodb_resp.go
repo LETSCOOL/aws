@@ -341,3 +341,38 @@ func (this *GetItemResp) Init(req *GetItemReq, resp *http.Response) (*GetItemRes
 
 	return this, nil
 }
+
+// ================================== ScanResp
+type ScanResp struct {
+	DynamoDBResp			`json:"-"`
+	Count					int
+	ScannedCount			int
+	Items					[]map[string]AttributeValue
+	LastEvaluatedKey		map[string]AttributeValue
+
+	ConsumedCapacity		ConsumedCapacity
+}
+
+func (this *ScanResp) Init(req *ScanReq, resp *http.Response) (*ScanResp, error) {
+	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
+		return nil, err
+	}
+
+	if this.Error!=nil {
+		return this, nil
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(body, this); err!=nil {
+		return nil, err
+	}
+
+	return this, nil
+}
+
+

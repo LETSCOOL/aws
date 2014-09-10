@@ -311,3 +311,54 @@ func (this *GetItemReq) generatePayload() {
 		fmt.Printf("Payload: %s\n", string(this.Payload.Bytes()))
 	}
 }
+
+
+// ================================ ScanReq
+
+type Condition struct {
+	ComparisonOperator	string			// EQ | NE | LE | LT | GE | GT | NOT_NULL | NULL | CONTAINS | NOT_CONTAINS | BEGINS_WITH | IN | BETWEEN
+	AttributeValueList	[]AttributeValue
+}
+
+type ScanReq struct {
+	DynamoDBReq									`json:"-"`
+
+	TableName			string					`json:"TableName"`
+	Select				string					`json:",omitempty"`				// ALL_ATTRIBUTES | ALL_PROJECTED_ATTRIBUTES | SPECIFIC_ATTRIBUTES | COUNT
+	AttributesToGet		[]string				`json:",omitempty"`
+	ExclusiveStartKey	map[string]AttributeValue	`json:",omitempty"`
+	Limit				int						`json:",omitempty"`
+
+	ConditionalOperator	string					`json:",omitempty"`				// "AND", "OR"
+	ScanFilter			map[string]Condition
+
+	TotalSegments		int						`json:",omitempty"`
+	Segment				int						`json:",omitempty"`
+
+	ReturnConsumedCapacity	string				`json:",omitempty"`				// INDEXES | TOTAL | NONE
+}
+
+
+func (this *ScanReq) Init() (*ScanReq) {
+	if this.DynamoDBReq.Init() == nil {
+		return nil
+	}
+
+	this.Method = "POST"
+
+	this.Headers["X-Amz-Target"] = "DynamoDB_"+DynamoDB_API_VERSION+"."+"Scan"
+	this.Headers["Content-Type"] = "application/x-amz-json-1.0"
+
+	return this
+}
+
+
+func (this *ScanReq) generatePayload() {
+	this.Payload.Truncate(0)
+	marshal, _ := json.Marshal(this)
+	this.Payload.WriteString(string(marshal))
+
+	if common.DEBUG_VERBOSE!=0 {
+		fmt.Printf("Payload: %s\n", string(this.Payload.Bytes()))
+	}
+}

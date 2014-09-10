@@ -148,5 +148,21 @@ func (this *DynamoDB) DeleteItem(req *DeleteItemReq) (*DeleteItemResp, error) {
 }
 
 
+func (this *DynamoDB) Scan(req *ScanReq) (*ScanResp, error) {
+	req.generatePayload()
+
+	httpReq, err := this.Sign4(&req.AWSRequest, true)
+	if err != nil {
+		return nil, err
+	}
+
+	httpResp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+
+	return new(ScanResp).Init(req, httpResp)
+}
+
 
 

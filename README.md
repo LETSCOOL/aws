@@ -70,7 +70,7 @@ API
 
 Only support some simple API(s):
 
-* DynamoDB: ListTables, CreateTable, DescribeTable, DeleteTable, PutItem, GetItem, DeleteItem
+* DynamoDB: ListTables, CreateTable, DescribeTable, DeleteTable, PutItem, GetItem, DeleteItem, Scan
 
 * EC2: DescribeInstances
 

@@ -174,6 +174,41 @@ func TestDynamoDBGetItem(t *testing.T) {
 	}
 }
 
+
+func TestDynamoDBScan(t *testing.T) {
+	ddb, err := NewDynamoDB(credentials)
+	if err!=nil {
+		t.Errorf("NewDynamoDB fail (%s)\n", err)
+		return
+	}
+
+	//ddb.Endpoint = "dynamodb.us-west-2.amazonaws.com"
+	//ddb.Region = "us-west-2"
+
+	req := (&ScanReq{
+		TableName:"Abcdefg__99999",
+			// following parameters are option
+		Select:"SPECIFIC_ATTRIBUTES",
+		AttributesToGet:[]string{"ATTR_1","ATTR_2"},
+		ScanFilter:map[string]Condition{"ATTR_2":Condition{ComparisonOperator:"EQ", AttributeValueList:[]AttributeValue{AttributeValue{S:"attr1"}}}},
+		ReturnConsumedCapacity:"TOTAL",
+	}).Init()
+	if resp, err := ddb.Scan(req); err!=nil {
+		t.Errorf("DynamoDB Scan fail (%s)\n", err)
+	} else {
+		if resp.Error!=nil {
+			t.Errorf("DynamoDB Scan fail (%s, %s)\n", resp.Error.Exception, resp.Error.Message)
+		} else {
+			t.Logf("Get #%d items with ConsumedCapacity: %+v\n", resp.Count, resp.ConsumedCapacity)
+			for i := 0; i< resp.Count; i++ {
+				t.Logf("Item %d: %+v", i, resp.Items[i])
+			}
+		}
+	}
+}
+
+
+
 func TestDynamoDBDeleteItem(t *testing.T) {
 	ddb, err := NewDynamoDB(credentials)
 	if err!=nil {
