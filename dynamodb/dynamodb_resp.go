@@ -281,6 +281,37 @@ func (this *PutItemResp) Init(req *PutItemReq, resp *http.Response) (*PutItemRes
 	return this, nil
 }
 
+// ==================================== UpdateItemResp
+type UpdateItemResp struct {
+	DynamoDBResp			`json:"-"`
+
+	Attributes				map[string]AttributeValue
+	ConsumedCapacity		ConsumedCapacity
+	ItemCollectionMetrics	ItemCollectionMetrics
+}
+
+func (this *UpdateItemResp) Init(req *UpdateItemReq, resp *http.Response) (*UpdateItemResp, error) {
+	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
+		return nil, err
+	}
+
+	if this.Error!=nil {
+		return this, nil
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(body, this); err!=nil {
+		return nil, err
+	}
+
+	return this, nil
+}
+
 // ==================================== DeleteItemResp
 type DeleteItemResp struct {
 	DynamoDBResp			`json:"-"`
@@ -374,5 +405,43 @@ func (this *ScanResp) Init(req *ScanReq, resp *http.Response) (*ScanResp, error)
 
 	return this, nil
 }
+
+
+// ===================================== QueryResp
+
+type QueryResp struct {
+	DynamoDBResp			`json:"-"`
+	Count					int
+	ScannedCount			int
+	Items					[]map[string]AttributeValue
+	LastEvaluatedKey		map[string]AttributeValue
+
+	ConsumedCapacity		ConsumedCapacity
+}
+
+func (this *QueryResp) Init(req *QueryReq, resp *http.Response) (*QueryResp, error) {
+	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
+		return nil, err
+	}
+
+	if this.Error!=nil {
+		return this, nil
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(body, this); err!=nil {
+		return nil, err
+	}
+
+	return this, nil
+}
+
+
+
 
 

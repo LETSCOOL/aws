@@ -11,6 +11,7 @@ type DynamoDBReq struct {
 
 }
 
+// ==========================  ListTablesReq
 type ListTablesReq struct {
 	DynamoDBReq                				`json:"-"`
 	ExclusiveStartTableName    string       `json:",omitempty"`
@@ -46,7 +47,7 @@ func (this *ListTablesReq) generatePayload() {
 }
 
 
-
+// ======================================= DescribeTableReq
 type DescribeTableReq struct {
 	DynamoDBReq					`json:"-"`
 	TableName		string		`json:"TableName"`
@@ -237,6 +238,53 @@ func (this *PutItemReq) generatePayload() {
 	}
 }
 
+
+//==========================  UpdateItemReq
+
+type AttributeValueUpdate struct {
+	Action				string					// ADD | PUT | DELETE
+	Value				AttributeValue
+}
+
+type UpdateItemReq struct {
+	DynamoDBReq							`json:"-"`
+
+	TableName				string
+	Key						map[string]AttributeValue
+	AttributeUpdates		map[string]AttributeValueUpdate
+
+	ConditionalOperator		string								`json:",omitempty"`				// "AND", "OR"
+	Expected				map[string]ExpectedAttributeValue	`json:",omitempty"`
+	ReturnConsumedCapacity	string								`json:",omitempty"`				// INDEXES | TOTAL | NONE
+	ReturnItemCollectionMetrics string							`json:",omitempty"`				// "SIZE", "NONE"
+	ReturnValues			string								`json:",omitempty"`				// NONE | ALL_OLD | UPDATED_OLD | ALL_NEW | UPDATED_NEW
+
+}
+
+func (this *UpdateItemReq) Init() (*UpdateItemReq) {
+	if this.DynamoDBReq.Init() == nil {
+		return nil
+	}
+
+	this.Method = "POST"
+
+	this.Headers["X-Amz-Target"] = "DynamoDB_"+DynamoDB_API_VERSION+"."+"UpdateItem"
+	this.Headers["Content-Type"] = "application/x-amz-json-1.0"
+
+	return this
+}
+
+
+func (this *UpdateItemReq) generatePayload() {
+	this.Payload.Truncate(0)
+	marshal, _ := json.Marshal(this)
+	this.Payload.WriteString(string(marshal))
+
+	if common.DEBUG_VERBOSE!=0 {
+		fmt.Printf("Payload: %s\n", string(this.Payload.Bytes()))
+	}
+}
+
 // =================================== DeleteItemReq
 
 type DeleteItemReq struct {
@@ -330,7 +378,7 @@ type ScanReq struct {
 	Limit				int						`json:",omitempty"`
 
 	ConditionalOperator	string					`json:",omitempty"`				// "AND", "OR"
-	ScanFilter			map[string]Condition
+	ScanFilter			map[string]Condition	`json:",omitempty"`
 
 	TotalSegments		int						`json:",omitempty"`
 	Segment				int						`json:",omitempty"`
@@ -362,3 +410,55 @@ func (this *ScanReq) generatePayload() {
 		fmt.Printf("Payload: %s\n", string(this.Payload.Bytes()))
 	}
 }
+
+
+//==================================== QueryReq
+// ref: http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Query.html
+type QueryReq struct {
+	DynamoDBReq
+
+	TableName			string						`json:"TableName"`
+	KeyConditions		map[string]Condition
+	Select				string						`json:",omitempty"`				// ALL_ATTRIBUTES | ALL_PROJECTED_ATTRIBUTES | SPECIFIC_ATTRIBUTES | COUNT
+	AttributesToGet		[]string					`json:",omitempty"`
+	IndexName			string						`json:",omitempty"`
+	ConsistentRead		bool
+	ScanIndexForward	bool
+
+	ConditionalOperator	string						`json:",omitempty"`				// "AND", "OR"  // A logical operator to apply to the conditions in the QueryFilter map
+	QueryFilter			map[string]Condition		`json:",omitempty"`
+
+	Limit				int							`json:",omitempty"`
+	ExclusiveStartKey	map[string]AttributeValue	`json:",omitempty"`
+
+
+	ReturnConsumedCapacity	string					`json:",omitempty"`				// INDEXES | TOTAL | NONE
+}
+
+func (this *QueryReq) Init() (*QueryReq) {
+	if this.DynamoDBReq.Init() == nil {
+		return nil
+	}
+
+	this.Method = "POST"
+
+	this.Headers["X-Amz-Target"] = "DynamoDB_"+DynamoDB_API_VERSION+"."+"Query"
+	this.Headers["Content-Type"] = "application/x-amz-json-1.0"
+
+	this.ScanIndexForward = true				// force to set as default situation in aws doc
+
+	return this
+}
+
+
+func (this *QueryReq) generatePayload() {
+	this.Payload.Truncate(0)
+	marshal, _ := json.Marshal(this)
+	this.Payload.WriteString(string(marshal))
+
+	if common.DEBUG_VERBOSE!=0 {
+		fmt.Printf("Payload: %s\n", string(this.Payload.Bytes()))
+	}
+}
+
+

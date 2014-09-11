@@ -207,6 +207,73 @@ func TestDynamoDBScan(t *testing.T) {
 	}
 }
 
+func TestDynamoDBUpdateItem(t *testing.T) {
+	ddb, err := NewDynamoDB(credentials)
+	if err!=nil {
+		t.Errorf("NewDynamoDB fail (%s)\n", err)
+		return
+	}
+
+	//ddb.Endpoint = "dynamodb.us-west-2.amazonaws.com"
+	//ddb.Region = "us-west-2"
+
+	req := (&UpdateItemReq{
+		TableName:"Abcdefg__99999",
+		Key:map[string]AttributeValue{"HASH_KEY":AttributeValue{S:"hk1"}, "RANGE_KEY":AttributeValue{N:"111111"}},
+		AttributeUpdates:map[string]AttributeValueUpdate{"ATTR_2":AttributeValueUpdate{Action:"PUT",Value:AttributeValue{S:"attr1111"}},},
+			// following parameters are option
+			//ConditionalOperator:"AND",
+		Expected:map[string]ExpectedAttributeValue{"ATTR_2":ExpectedAttributeValue{ComparisonOperator:"EQ", AttributeValueList:[]AttributeValue{AttributeValue{S:"attr1"}}}},
+		ReturnConsumedCapacity:"TOTAL",
+		ReturnItemCollectionMetrics:"SIZE",
+		ReturnValues:"UPDATED_NEW",
+	}).Init()
+	if resp, err := ddb.UpdateItem(req); err!=nil {
+		t.Errorf("DynamoDB UpdateItem fail (%s)\n", err)
+	} else {
+		if resp.Error!=nil {
+			t.Errorf("DynamoDB UpdateItem fail (%s, %s)\n", resp.Error.Exception, resp.Error.Message)
+		} else {
+			t.Logf("Update item: %+v\n", resp)
+		}
+	}
+}
+
+
+func TestDynamoDBQuery(t *testing.T) {
+	ddb, err := NewDynamoDB(credentials)
+	if err!=nil {
+		t.Errorf("NewDynamoDB fail (%s)\n", err)
+		return
+	}
+
+	//ddb.Endpoint = "dynamodb.us-west-2.amazonaws.com"
+	//ddb.Region = "us-west-2"
+
+	req := (&QueryReq{
+		TableName:"Abcdefg__99999",
+		IndexName:"Local_attr_1",
+			// following parameters are option
+		ConsistentRead:true,
+		Select:"ALL_ATTRIBUTES",
+		//AttributesToGet:[]string{"ATTR_1","ATTR_2"},
+		KeyConditions:map[string]Condition{"HASH_KEY":Condition{ComparisonOperator:"EQ", AttributeValueList:[]AttributeValue{AttributeValue{S:"hk1"}}}},
+		//QueryFilter:map[string]Condition{"ATTR_2":Condition{ComparisonOperator:"EQ", AttributeValueList:[]AttributeValue{AttributeValue{S:"attr1"}}}},
+		ReturnConsumedCapacity:"TOTAL",
+	}).Init()
+	if resp, err := ddb.Query(req); err!=nil {
+		t.Errorf("DynamoDB Query fail (%s)\n", err)
+	} else {
+		if resp.Error!=nil {
+			t.Errorf("DynamoDB Query fail (%s, %s)\n", resp.Error.Exception, resp.Error.Message)
+		} else {
+			t.Logf("Get #%d items with ConsumedCapacity: %+v\n", resp.Count, resp.ConsumedCapacity)
+			for i := 0; i< resp.Count; i++ {
+				t.Logf("Item %d: %+v", i, resp.Items[i])
+			}
+		}
+	}
+}
 
 
 func TestDynamoDBDeleteItem(t *testing.T) {
@@ -224,7 +291,7 @@ func TestDynamoDBDeleteItem(t *testing.T) {
 		Key:map[string]AttributeValue{"HASH_KEY":AttributeValue{S:"hk1"}, "RANGE_KEY":AttributeValue{N:"111111"},},
 			// following parameters are option
 		//ConditionalOperator:"AND",
-		Expected:map[string]ExpectedAttributeValue{"ATTR_2":ExpectedAttributeValue{ComparisonOperator:"EQ",AttributeValueList:[]AttributeValue{AttributeValue{S:"attr1"}}}},
+		Expected:map[string]ExpectedAttributeValue{"ATTR_2":ExpectedAttributeValue{ComparisonOperator:"EQ",AttributeValueList:[]AttributeValue{AttributeValue{S:"attr1111"}}}},
 		ReturnConsumedCapacity:"TOTAL",
 		ReturnItemCollectionMetrics:"SIZE",
 		ReturnValues:"NONE",

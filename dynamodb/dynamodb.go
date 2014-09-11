@@ -115,6 +115,22 @@ func (this *DynamoDB) PutItem(req *PutItemReq) (*PutItemResp, error) {
 	return new(PutItemResp).Init(req, httpResp)
 }
 
+func (this *DynamoDB) UpdateItem(req *UpdateItemReq) (*UpdateItemResp, error) {
+	req.generatePayload()
+
+	httpReq, err := this.Sign4(&req.AWSRequest, true)
+	if err != nil {
+		return nil, err
+	}
+
+	httpResp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+
+	return new(UpdateItemResp).Init(req, httpResp)
+}
+
 func (this *DynamoDB) GetItem(req *GetItemReq) (*GetItemResp, error) {
 	req.generatePayload()
 
@@ -162,6 +178,23 @@ func (this *DynamoDB) Scan(req *ScanReq) (*ScanResp, error) {
 	}
 
 	return new(ScanResp).Init(req, httpResp)
+}
+
+
+func (this *DynamoDB) Query(req *QueryReq) (*QueryResp, error) {
+	req.generatePayload()
+
+	httpReq, err := this.Sign4(&req.AWSRequest, true)
+	if err != nil {
+		return nil, err
+	}
+
+	httpResp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+
+	return new(QueryResp).Init(req, httpResp)
 }
 
 
