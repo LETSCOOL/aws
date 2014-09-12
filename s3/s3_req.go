@@ -29,6 +29,8 @@ func (this *GetServiceReq) Init() (*GetServiceReq) {
 // doc: http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketOps.html
 
 
+// =================================================== NewBucketReq
+// ref: http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketPUT.html
 // PUT Bucket
 type NewBucketReq struct {
 	S3Req

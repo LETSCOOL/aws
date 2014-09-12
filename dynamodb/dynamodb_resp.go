@@ -17,6 +17,11 @@ type Error struct {
 	Type		string			`json:"__type"`
 	Message		string			`json`
 	Exception	string			`json:"-"`			// parse from type
+
+}
+
+func (this *Error)Error() string {
+	return this.Exception + ": " + this.Message
 }
 
 type DynamoDBResp struct {
@@ -26,7 +31,7 @@ type DynamoDBResp struct {
 
 func (this *DynamoDBResp) Init(req *DynamoDBReq, resp *http.Response) (*DynamoDBResp, error) {
 	if _, err := this.AWSResponse.Init(&req.AWSRequest, resp); err != nil {
-		return nil, err
+		return this, err
 	}
 
 	this.Error = nil
@@ -38,15 +43,17 @@ func (this *DynamoDBResp) Init(req *DynamoDBReq, resp *http.Response) (*DynamoDB
 			body, err := ioutil.ReadAll(resp.Body)
 
 			if err != nil {
-				return nil, err
+				return this, err
 			}
 
 			err = json.Unmarshal(body, this.Error)
 			if err!=nil {
-				return nil, err
+				return this, err
 			}
 
 			this.Error.Exception = this.Error.Type[strings.IndexRune(this.Error.Type, rune('#'))+1:]
+
+			return this, this.Error
 
 		} else {
 			// impossible, and no ideal how to deal.
@@ -66,21 +73,17 @@ type ListTablesResp struct {
 
 func (this *ListTablesResp) Init(req *ListTablesReq, resp *http.Response) (*ListTablesResp, error) {
 	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
-		return nil, err
-	}
-
-	if this.Error!=nil {
-		return this, nil
+		return this, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return nil, err
+		return this, err
 	}
 
 	if err := json.Unmarshal(body, this); err!=nil {
-		return nil, err
+		return this, err
 	}
 
 	return this, nil
@@ -155,21 +158,17 @@ type DescribeTableResp struct {
 
 func (this *DescribeTableResp) Init(req *DescribeTableReq, resp *http.Response) (*DescribeTableResp, error) {
 	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
-		return nil, err
-	}
-
-	if this.Error!=nil {
-		return this, nil
+		return this, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return nil, err
+		return this, err
 	}
 
 	if err := json.Unmarshal(body, this); err!=nil {
-		return nil, err
+		return this, err
 	}
 
 	return this, nil
@@ -183,21 +182,17 @@ type CreateTableResp struct {
 
 func (this *CreateTableResp) Init(req *CreateTableReq, resp *http.Response) (*CreateTableResp, error) {
 	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
-		return nil, err
-	}
-
-	if this.Error!=nil {
-		return this, nil
+		return this, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return nil, err
+		return this, err
 	}
 
 	if err := json.Unmarshal(body, this); err!=nil {
-		return nil, err
+		return this, err
 	}
 
 	return this, nil
@@ -211,21 +206,17 @@ type DeleteTableResp struct {
 
 func (this *DeleteTableResp) Init(req *DeleteTableReq, resp *http.Response) (*DeleteTableResp, error) {
 	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
-		return nil, err
-	}
-
-	if this.Error!=nil {
-		return this, nil
+		return this, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return nil, err
+		return this, err
 	}
 
 	if err := json.Unmarshal(body, this); err!=nil {
-		return nil, err
+		return this, err
 	}
 
 	return this, nil
@@ -261,21 +252,17 @@ type PutItemResp struct {
 
 func (this *PutItemResp) Init(req *PutItemReq, resp *http.Response) (*PutItemResp, error) {
 	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
-		return nil, err
-	}
-
-	if this.Error!=nil {
-		return this, nil
+		return this, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return nil, err
+		return this, err
 	}
 
 	if err := json.Unmarshal(body, this); err!=nil {
-		return nil, err
+		return this, err
 	}
 
 	return this, nil
@@ -292,21 +279,17 @@ type UpdateItemResp struct {
 
 func (this *UpdateItemResp) Init(req *UpdateItemReq, resp *http.Response) (*UpdateItemResp, error) {
 	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
-		return nil, err
-	}
-
-	if this.Error!=nil {
-		return this, nil
+		return this, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return nil, err
+		return this, err
 	}
 
 	if err := json.Unmarshal(body, this); err!=nil {
-		return nil, err
+		return this, err
 	}
 
 	return this, nil
@@ -323,21 +306,17 @@ type DeleteItemResp struct {
 
 func (this *DeleteItemResp) Init(req *DeleteItemReq, resp *http.Response) (*DeleteItemResp, error) {
 	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
-		return nil, err
-	}
-
-	if this.Error!=nil {
-		return this, nil
+		return this, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return nil, err
+		return this, err
 	}
 
 	if err := json.Unmarshal(body, this); err!=nil {
-		return nil, err
+		return this, err
 	}
 
 	return this, nil
@@ -353,21 +332,17 @@ type GetItemResp struct {
 
 func (this *GetItemResp) Init(req *GetItemReq, resp *http.Response) (*GetItemResp, error) {
 	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
-		return nil, err
-	}
-
-	if this.Error!=nil {
-		return this, nil
+		return this, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return nil, err
+		return this, err
 	}
 
 	if err := json.Unmarshal(body, this); err!=nil {
-		return nil, err
+		return this, err
 	}
 
 	return this, nil
@@ -386,21 +361,17 @@ type ScanResp struct {
 
 func (this *ScanResp) Init(req *ScanReq, resp *http.Response) (*ScanResp, error) {
 	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
-		return nil, err
-	}
-
-	if this.Error!=nil {
-		return this, nil
+		return this, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return nil, err
+		return this, err
 	}
 
 	if err := json.Unmarshal(body, this); err!=nil {
-		return nil, err
+		return this, err
 	}
 
 	return this, nil
@@ -421,21 +392,17 @@ type QueryResp struct {
 
 func (this *QueryResp) Init(req *QueryReq, resp *http.Response) (*QueryResp, error) {
 	if _, err := this.DynamoDBResp.Init(&req.DynamoDBReq, resp); err != nil {
-		return nil, err
-	}
-
-	if this.Error!=nil {
-		return this, nil
+		return this, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return nil, err
+		return this, err
 	}
 
 	if err := json.Unmarshal(body, this); err!=nil {
-		return nil, err
+		return this, err
 	}
 
 	return this, nil

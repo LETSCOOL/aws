@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"encoding/xml"
 	"io/ioutil"
-	"errors"
-	"strings"
+	//"strings"
+	//"fmt"
 )
 
 /**
@@ -19,6 +19,10 @@ type Error struct {
 	Resource	string		`xml`
 }
 
+func (this *Error) Error() string {
+	return this.Code + ":" + this.Message + " (" + this.Resource + ")"
+}
+
 /**
 	S3 base type, handle error code.
  */
@@ -29,7 +33,7 @@ type S3Resp struct {
 
 func (this *S3Resp) Init(req *S3Req, resp *http.Response) (*S3Resp, error) {
 	if _, err := this.AWSResponse.Init(&req.AWSRequest, resp); err != nil {
-		return nil, err
+		return this, err
 	}
 
 	this.Error = nil
@@ -37,20 +41,22 @@ func (this *S3Resp) Init(req *S3Req, resp *http.Response) (*S3Resp, error) {
 	if resp.StatusCode >= 300 {
 		this.Error = new(Error)
 
-		if strings.ToLower(resp.Header.Get("Content-Type"))== "application/xml" {
+		//if strings.ToLower(resp.Header.Get("Content-Type"))== "application/xml" {
 			body, err := ioutil.ReadAll(resp.Body)
 
 			if err != nil {
-				return nil, err
+				return this, err
 			}
 
 			err = xml.Unmarshal(body, this.Error)
 			if err!=nil {
-				return nil, err
+				return this, err
+			} else {
+				return this, this.Error
 			}
-		} else {
+		//} else {
 			// impossible, and no ideal how to deal.
-		}
+		//}
 	}
 	
 	return this, nil
@@ -80,24 +86,20 @@ type GetServiceResp struct {
 
 func (this *GetServiceResp) Init(req *GetServiceReq, resp *http.Response) (*GetServiceResp, error) {
 	if _, err := this.S3Resp.Init(&req.S3Req, resp); err != nil {
-		return nil, err
-	}
-
-	if this.Error!=nil {
-		return this, nil
+		return this, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return nil, err
+		return this, err
 	}
 
 	//fmt.Printf("%s\n", string(body))
 
 	err = xml.Unmarshal(body, this)
 	if err!=nil {
-		return nil, err
+		return this, err
 	}
 
 
@@ -111,22 +113,15 @@ type NewBucketResp struct {
 
 func (this *NewBucketResp) Init(req *NewBucketReq, resp *http.Response) (*NewBucketResp, error) {
 	if _, err := this.S3Resp.Init(&req.S3Req, resp); err != nil {
-		return nil, err
+		return this, err
 	}
 
-	if this.Error!=nil {
-		return this, nil
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
+	/*body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return nil, err
-	}
+		return this, err
+	}*/
 
-	if (resp.StatusCode/100) != 2 {
-		return nil, errors.New(string(body))
-	}
 
 	return this, nil
 }
@@ -139,10 +134,11 @@ type ExistBucketResp struct {
 
 func (this *ExistBucketResp) Init(req *ExistBucketReq, resp *http.Response) (*ExistBucketResp, error) {
 	if _, err := this.S3Resp.Init(&req.S3Req, resp); err != nil {
-		return nil, err
+		this.Exists = false
+		return this, err
 	}
 
-	this.Exists	= (this.Error==nil)
+	this.Exists	= true
 
 	return this, nil
 }
@@ -154,12 +150,8 @@ type DeleteBucketResp struct {
 
 func (this *DeleteBucketResp) Init(req *DeleteBucketReq, resp *http.Response) (*DeleteBucketResp, error) {
 	if _, err := this.S3Resp.Init(&req.S3Req, resp); err != nil {
-		return nil, err
+		return this, err
 	}
-
-	/*if this.Error!=nil {
-		return this, nil
-	}*/
 
 	return this, nil
 }

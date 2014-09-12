@@ -17,8 +17,12 @@ type Error struct {
 }
 
 type ErrorResponse struct {
-	Error        Error
+	Err		     Error			`xml:"Error"`
 	RequestId    string
+}
+
+func (this *ErrorResponse) Error() string {
+	return this.Err.Code + ":" + this.Err.Message
 }
 
 type STSResp struct {
@@ -29,7 +33,7 @@ type STSResp struct {
 
 func (this *STSResp) Init(req *STSReq, resp *http.Response) (*STSResp, error) {
 	if _, err := this.AWSResponse.Init(&req.AWSRequest, resp); err != nil {
-		return nil, err
+		return this, err
 	}
 
 	this.ErrorResponse = nil
@@ -39,16 +43,16 @@ func (this *STSResp) Init(req *STSReq, resp *http.Response) (*STSResp, error) {
 		body, err := ioutil.ReadAll(resp.Body)
 
 		if err != nil {
-			return nil, err
+			return this, err
 		}
 
 		//fmt.Printf("%s\n", string(body))
 
 		err = xml.Unmarshal(body, this.ErrorResponse)
 		if err != nil {
-			return nil, err
+			return this, err
 		}
-		return this, nil
+		return this, this.ErrorResponse
 	}
 
 	return this, nil
@@ -85,24 +89,20 @@ type GetFederationTokenResp struct {
 
 func (this *GetFederationTokenResp) Init(req *GetFederationTokenReq, resp *http.Response) (*GetFederationTokenResp, error) {
 	if _, err := this.STSResp.Init(&req.STSReq, resp); err != nil {
-		return nil, err
-	}
-
-	if this.ErrorResponse != nil {
-		return this, nil
+		return this, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		return nil, err
+		return this, err
 	}
 
 	//fmt.Printf("%s\n", string(body))
 
 	err = xml.Unmarshal(body, this)
 	if err != nil {
-		return nil, err
+		return this, err
 	}
 
 	return this, nil

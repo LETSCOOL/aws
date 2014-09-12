@@ -25,7 +25,7 @@ func TestEC2Connect(t *testing.T) {
 		return
 	} else {
 		if resp.Errors != nil {
-			t.Errorf("EC2 DescribeInstances fail: %s\n", resp.Errors.Error[0].Message)
+			t.Errorf("EC2 DescribeInstances fail: %s\n", resp.Errors)
 
 		} else {
 			t.Logf("RequestId: %s, NextToken: %s\n", resp.RequestId, resp.NextToken)

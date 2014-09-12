@@ -70,7 +70,7 @@ func TestSTSGetFederationToken(t *testing.T) {
 		t.Errorf("STS GetFederationToken fail (%s)\n", err)
 	} else {
 		if resp.ErrorResponse != nil {
-			t.Errorf("STS GetFederationToken fail (%s)\n", resp.ErrorResponse.Error.Message)
+			t.Errorf("STS GetFederationToken fail (%s)\n", resp.ErrorResponse.Err.Message)
 		} else {
 			t.Logf("GetFederationToken done (%s)\n", resp.GetFederationTokenResult.FederatedUser.FederatedUserId)
 		}
